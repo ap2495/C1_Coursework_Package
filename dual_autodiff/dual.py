@@ -5,8 +5,10 @@ class Dual:
     r"""A class representing dual numbers for automatic differentiation.
 
     Attributes:
-        real (float, int): The real part of the dual number.
-        dual (float, int): The dual part of the dual number.
+        real (float, int, or array-like): The real part of the dual number. 
+            This can be a scalar (float or int) or an array-like object (e.g., list, tuple, numpy.ndarray).
+        dual (float, int, or array-like): The dual part of the dual number.
+            This can be a scalar (float or int) or an array-like object (e.g., list, tuple, numpy.ndarray).
 
     Note:
         For mathematical operations like sine, cosine, and logarithm, the real and dual parts of the output
@@ -23,12 +25,30 @@ class Dual:
         """Initialize an object of the Dual class.
 
         Args:
-            real (float, int): The real part of the dual number.
-            dual (float, int): The dual part of the dual number.
+            real (float, int, or array-like): The real part of the dual number.
+                This can be a scalar or an array-like object.
+            dual (float, int, or array-like): The dual part of the dual number.
+                This can be a scalar or an array-like object.
+
+        Raises:
+            ValueError: If both `real` and `dual` are arrays (e.g., numpy.ndarray) but their shapes do not match.
 
         Note:
-            Retrieve the real part of the Dual class object with `object.real` and the dual part with `object.dual`.
+            If both `real` and `dual` are arrays, a check is performed to ensure their shapes match.
+            This is to ensure that element-wise operations on the dual number are valid. If the shapes
+            are mismatched, a `ValueError` is raised.
         """
+        # Convert inputs to numpy arrays if they are array-like
+        if isinstance(real, (list, tuple, np.ndarray)):
+            real = np.asarray(real)
+        if isinstance(dual, (list, tuple, np.ndarray)):
+            dual = np.asarray(dual)
+        
+        # Check if both are arrays and their shapes match
+        if isinstance(real, np.ndarray) and isinstance(dual, np.ndarray):
+            if real.shape != dual.shape:
+                raise ValueError(f"Shape mismatch: real has shape {real.shape}, but dual has shape {dual.shape}")
+            
         self.real = real
         self.dual = dual
 
@@ -84,7 +104,6 @@ class Dual:
 
         Returns:
             Dual: A new Dual number raised to the power of the exponent.
-
         """
         return Dual(
             self.real ** exponent,
@@ -125,21 +144,27 @@ class Dual:
         """
         tolerance_exception = 1e-10
         tolerance_warning = 1e-6
-        n = round((self.real - np.pi / 2) / np.pi)
+
+        real_array = np.asarray(self.real)  # Ensure the real part is treated as an array
+        dual_array = np.asarray(self.dual)  # Ensure the dual part is treated as an array
+
+        n = np.round((real_array - np.pi / 2) / np.pi)
         pi_over_2_plus_n_pi = np.pi / 2 + n * np.pi
-        delta = abs(self.real - pi_over_2_plus_n_pi)
-        if delta < tolerance_exception:
+        delta = np.abs(real_array - pi_over_2_plus_n_pi)
+
+        if np.any(delta < tolerance_exception):
             raise ValueError(
                 "Real value cannot be within 1e-10 of pi/2 + n*pi. Tan and 1/cos(real) are both undefined at these points."
             )
-        elif delta < tolerance_warning:
+        if np.any((delta >= tolerance_exception) & (delta < tolerance_warning)):
             warnings.warn(
                 "The proximity of the real value is less than 1e-6 to pi/2 + n*pi. Beware of potential numerical instability.",
                 RuntimeWarning
             )
+
         return Dual(
-            np.tan(self.real),
-            (1 / np.cos(self.real)) ** 2 * self.dual
+            np.tan(real_array),
+            (1 / np.cos(real_array)) ** 2 * dual_array
         )
 
     def log(self):
@@ -155,22 +180,28 @@ class Dual:
         """
         tolerance_exception = 1e-10
         tolerance_warning = 1e-6
-        if self.real > 0 and self.real <= tolerance_exception:
+
+        real_array = np.asarray(self.real)  # Ensure the real part is treated as an array
+        dual_array = np.asarray(self.dual)  # Ensure the dual part is treated as an array
+
+        # Logical checks for exceptions and warnings
+        if np.any(real_array > 0) and np.any(real_array <= tolerance_exception):
             raise ValueError(
                 "Real value is less than 1e-10. Log is undefined at zero, beware of potential overflow."
             )
-        elif self.real > tolerance_exception and self.real < tolerance_warning:
+        if np.any((real_array > tolerance_exception) & (real_array < tolerance_warning)):
             warnings.warn(
                 "Log is undefined for x <= 0. The proximity of the real value to 0 is within 1e-6. Beware of potential numerical instability.",
                 RuntimeWarning
             )
-        elif self.real <= 0:
+        if np.any(real_array <= 0):
             raise ValueError(
                 "Log cannot take in 0 or less than 0 for the real value. Real value must be greater than zero."
             )
+
         return Dual(
-            np.log(self.real),
-            (1 / self.real) * self.dual
+            np.log(real_array),
+            (1 / real_array) * dual_array
         )
 
     def exp(self):
