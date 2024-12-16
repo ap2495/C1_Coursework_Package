@@ -3,13 +3,14 @@ import numpy as np
 import re
 from dual_autodiff.dual import Dual
 
-# Implement a test function for every method in dual
-
+# Test initialization of Dual numbers
 def test_init():
+    # Test creating a Dual number with real and dual parts
     test_number = Dual(5.0, 7.0)
     assert test_number.real == 5.0
     assert test_number.dual == 7.0
 
+# Test addition of Dual numbers
 def test_add():
     test_number1 = Dual(5.0, 7.0)
     test_number2 = Dual(3.0, 2.0)
@@ -17,6 +18,7 @@ def test_add():
     assert test_sum.real == 8.0
     assert test_sum.dual == 9.0
 
+# Test subtraction of Dual numbers
 def test_sub():
     test_number1 = Dual(5.0, 7.0)
     test_number2 = Dual(3.0, 2.0)
@@ -24,6 +26,7 @@ def test_sub():
     assert test_diff.real == 2.0
     assert test_diff.dual == 5.0
 
+# Test multiplication of Dual numbers
 def test_mul():
     test_number1 = Dual(5.0, 7.0)
     test_number2 = Dual(3.0, 2.0)
@@ -33,15 +36,16 @@ def test_mul():
     assert test_prod.real == expected_real
     assert test_prod.dual == expected_dual
 
-# From now on I will change the 7.0 to a 1.0, so that the dual number would reflect the derivative
+# Test exponentiation of Dual numbers
 def test_pow():
-    test_number = Dual(5.0, 1.0)
+    test_number = Dual(5.0, 1.0)  # Set dual to 1.0 for derivative representation
     power = test_number ** 3
     expected_real = 5.0 ** 3
     expected_dual = 3 * 5.0 ** (3 - 1) * 1.0
     assert power.real == expected_real
     assert power.dual == expected_dual
 
+# Test sine function with Dual numbers
 def test_sin():
     test_number = Dual(5.0, 1.0)
     sin_test = test_number.sin()
@@ -50,7 +54,7 @@ def test_sin():
     assert sin_test.real == pytest.approx(expected_real, rel=1e-6)
     assert sin_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
-
+# Test cosine function with Dual numbers
 def test_cos():
     test_number = Dual(5.0, 1.0)
     cos_test = test_number.cos()
@@ -59,31 +63,30 @@ def test_cos():
     assert cos_test.real == pytest.approx(expected_real, rel=1e-6)
     assert cos_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
+# Test tangent function with Dual numbers
 def test_tan():
-    # Test normal case
-    test_number = Dual(5.0, 1.0)
+    test_number = Dual(5.0, 1.0)  # Normal case
     tan_test = test_number.tan()
     expected_real = np.tan(5.0)
     expected_dual = (1 / np.cos(5.0)) ** 2 * 1.0
     assert tan_test.real == pytest.approx(expected_real, rel=1e-6)
     assert tan_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
-    # Test exception for exactly pi/2 + n*pi
+    # Test exception for undefined values of tan
     invalid_number_test = Dual(np.pi / 2, 1.0)
     with pytest.raises(ValueError, match=re.escape("Real value cannot be within 1e-10 of pi/2 + n*pi. Tan and 1/cos(real) are both undefined at these points.")):
         invalid_number_test.tan()
 
-    # Test warning for value close to pi/2 + n*pi
-    # I used ChatGPT to figure this out
+    # Test warning for values close to undefined tan points
     almost_invalid = Dual(np.pi / 2 + 1e-8, 1.0)
     with pytest.warns(RuntimeWarning, match=re.escape("The proximity of the real value is less than 1e-6 to pi/2 + n*pi. Beware of potential numerical instability.")):
         tan_almost = almost_invalid.tan()
-        # Check the output even when warning is raised
         expected_real = np.tan(almost_invalid.real)
         expected_dual = (1 / np.cos(almost_invalid.real)) ** 2 * 1.0
         assert tan_almost.real == pytest.approx(expected_real, rel=1e-6)
         assert tan_almost.dual == pytest.approx(expected_dual, rel=1e-6)
 
+# Test natural logarithm with Dual numbers
 def test_log():
     test_number = Dual(5.0, 1.0)
     log_test = test_number.log()
@@ -92,6 +95,7 @@ def test_log():
     assert log_test.real == pytest.approx(expected_real, rel=1e-6)
     assert log_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
+    # Test exception for log of non-positive real values
     invalid_number1 = Dual(0.0, 1.0)
     with pytest.raises(ValueError) as excinfo:
         invalid_number1.log()
@@ -102,38 +106,36 @@ def test_log():
         invalid_number2.log()
     assert "Log cannot take in 0 or less than 0 for the real value. Real value must be greater than zero." in str(excinfo2)
 
-    # Test exception when 0 < self.real < tolerance_exception (1e-10)
+    # Test exception for very small real values
     small_number = Dual(1e-11, 1.0)
     with pytest.raises(ValueError, match=re.escape("Real value is less than 1e-10. Log is undefined at zero, beware of potential overflow.")):
         small_number.log()
 
-    # Test warning when tolerance_exception < self.real < tolerance_warning (1e-10 to 1e-6)
+    # Test warning for real values near zero
     almost_zero = Dual(1e-7, 1.0)
     with pytest.warns(RuntimeWarning, match=re.escape("Log is undefined for x <= 0. The proximity of the real value to 0 is within 1e-6. Beware of potential numerical instability.")):
         log_almost_zero = almost_zero.log()
-        # Check the output even when warning is raised
         expected_real = np.log(1e-7)
         expected_dual = 1 / 1e-7 * 1.0
         assert log_almost_zero.real == pytest.approx(expected_real, rel=1e-6)
         assert log_almost_zero.dual == pytest.approx(expected_dual, rel=1e-6)
 
-    
-
+# Test exponential function with Dual numbers
 def test_exp():
     test_number = Dual(5.0, 1.0)
     exp_test = test_number.exp()
     expected_real = np.exp(5.0)
     expected_dual = np.exp(5.0) * 1.0
-
     assert exp_test.real == expected_real
     assert exp_test.dual == expected_dual
 
-# Tests for Dual class with array inputs
+# Test initialization of Dual numbers with arrays
 def test_init_array():
     test_number = Dual(np.array([1.0, 2.0]), np.array([3.0, 4.0]))
     assert np.all(test_number.real == np.array([1.0, 2.0]))
     assert np.all(test_number.dual == np.array([3.0, 4.0]))
 
+# Test addition of Dual arrays
 def test_add_array():
     test_number1 = Dual(np.array([1.0, 2.0]), np.array([3.0, 4.0]))
     test_number2 = Dual(np.array([5.0, 6.0]), np.array([7.0, 8.0]))
@@ -141,6 +143,7 @@ def test_add_array():
     assert np.all(test_sum.real == np.array([6.0, 8.0]))
     assert np.all(test_sum.dual == np.array([10.0, 12.0]))
 
+# Test subtraction of Dual arrays
 def test_sub_array():
     test_number1 = Dual(np.array([5.0, 6.0]), np.array([7.0, 8.0]))
     test_number2 = Dual(np.array([3.0, 2.0]), np.array([1.0, 2.0]))
@@ -148,6 +151,7 @@ def test_sub_array():
     assert np.all(test_diff.real == np.array([2.0, 4.0]))
     assert np.all(test_diff.dual == np.array([6.0, 6.0]))
 
+# Test multiplication of Dual arrays
 def test_mul_array():
     test_number1 = Dual(np.array([5.0, 2.0]), np.array([3.0, 1.0]))
     test_number2 = Dual(np.array([4.0, 3.0]), np.array([2.0, 2.0]))
@@ -157,6 +161,7 @@ def test_mul_array():
     assert np.all(test_prod.real == expected_real)
     assert np.all(test_prod.dual == expected_dual)
 
+# Test exponentiation of Dual arrays
 def test_pow_array():
     test_number = Dual(np.array([2.0, 3.0]), np.array([1.0, 1.0]))
     power = test_number ** 2
@@ -165,6 +170,7 @@ def test_pow_array():
     assert np.all(power.real == expected_real)
     assert np.all(power.dual == expected_dual)
 
+# Test sine function with Dual arrays
 def test_sin_array():
     test_number = Dual(np.array([0.0, np.pi / 4]), np.array([1.0, 1.0]))
     sin_test = test_number.sin()
@@ -173,6 +179,7 @@ def test_sin_array():
     assert sin_test.real == pytest.approx(expected_real, rel=1e-6)
     assert sin_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
+# Test cosine function with Dual arrays
 def test_cos_array():
     test_number = Dual(np.array([0.0, np.pi / 4]), np.array([1.0, 1.0]))
     cos_test = test_number.cos()
@@ -181,6 +188,7 @@ def test_cos_array():
     assert cos_test.real == pytest.approx(expected_real, rel=1e-6)
     assert cos_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
+# Test tangent function with Dual arrays
 def test_tan_array():
     test_number = Dual(np.array([0.0, np.pi / 4]), np.array([1.0, 1.0]))
     tan_test = test_number.tan()
@@ -189,6 +197,7 @@ def test_tan_array():
     assert tan_test.real == pytest.approx(expected_real, rel=1e-6)
     assert tan_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
+# Test natural logarithm with Dual arrays
 def test_log_array():
     test_number = Dual(np.array([2.0, 3.0]), np.array([1.0, 1.0]))
     log_test = test_number.log()
@@ -197,6 +206,7 @@ def test_log_array():
     assert log_test.real == pytest.approx(expected_real, rel=1e-6)
     assert log_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
+# Test exponential function with Dual arrays
 def test_exp_array():
     test_number = Dual(np.array([2.0, 3.0]), np.array([1.0, 1.0]))
     exp_test = test_number.exp()
@@ -205,6 +215,7 @@ def test_exp_array():
     assert exp_test.real == pytest.approx(expected_real, rel=1e-6)
     assert exp_test.dual == pytest.approx(expected_dual, rel=1e-6)
 
+# Test exception for mismatched shapes in array inputs
 def test_shape_mismatch_exception():
     real = np.array([1.0, 2.0, 3.0])
     dual = np.array([4.0, 5.0])  # Mismatched shape
