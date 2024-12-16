@@ -127,3 +127,86 @@ def test_exp():
 
     assert exp_test.real == expected_real
     assert exp_test.dual == expected_dual
+
+# Tests for Dual class with array inputs
+def test_init_array():
+    test_number = Dual(np.array([1.0, 2.0]), np.array([3.0, 4.0]))
+    assert np.all(test_number.real == np.array([1.0, 2.0]))
+    assert np.all(test_number.dual == np.array([3.0, 4.0]))
+
+def test_add_array():
+    test_number1 = Dual(np.array([1.0, 2.0]), np.array([3.0, 4.0]))
+    test_number2 = Dual(np.array([5.0, 6.0]), np.array([7.0, 8.0]))
+    test_sum = test_number1 + test_number2
+    assert np.all(test_sum.real == np.array([6.0, 8.0]))
+    assert np.all(test_sum.dual == np.array([10.0, 12.0]))
+
+def test_sub_array():
+    test_number1 = Dual(np.array([5.0, 6.0]), np.array([7.0, 8.0]))
+    test_number2 = Dual(np.array([3.0, 2.0]), np.array([1.0, 2.0]))
+    test_diff = test_number1 - test_number2
+    assert np.all(test_diff.real == np.array([2.0, 4.0]))
+    assert np.all(test_diff.dual == np.array([6.0, 6.0]))
+
+def test_mul_array():
+    test_number1 = Dual(np.array([5.0, 2.0]), np.array([3.0, 1.0]))
+    test_number2 = Dual(np.array([4.0, 3.0]), np.array([2.0, 2.0]))
+    test_prod = test_number1 * test_number2
+    expected_real = np.array([5.0 * 4.0, 2.0 * 3.0])
+    expected_dual = np.array([5.0 * 2.0 + 3.0 * 4.0, 2.0 * 2.0 + 1.0 * 3.0])
+    assert np.all(test_prod.real == expected_real)
+    assert np.all(test_prod.dual == expected_dual)
+
+def test_pow_array():
+    test_number = Dual(np.array([2.0, 3.0]), np.array([1.0, 1.0]))
+    power = test_number ** 2
+    expected_real = np.array([4.0, 9.0])
+    expected_dual = np.array([2 * 2.0 * 1.0, 2 * 3.0 * 1.0])
+    assert np.all(power.real == expected_real)
+    assert np.all(power.dual == expected_dual)
+
+def test_sin_array():
+    test_number = Dual(np.array([0.0, np.pi / 4]), np.array([1.0, 1.0]))
+    sin_test = test_number.sin()
+    expected_real = np.sin(np.array([0.0, np.pi / 4]))
+    expected_dual = np.cos(np.array([0.0, np.pi / 4]))
+    assert sin_test.real == pytest.approx(expected_real, rel=1e-6)
+    assert sin_test.dual == pytest.approx(expected_dual, rel=1e-6)
+
+def test_cos_array():
+    test_number = Dual(np.array([0.0, np.pi / 4]), np.array([1.0, 1.0]))
+    cos_test = test_number.cos()
+    expected_real = np.cos(np.array([0.0, np.pi / 4]))
+    expected_dual = -np.sin(np.array([0.0, np.pi / 4]))
+    assert cos_test.real == pytest.approx(expected_real, rel=1e-6)
+    assert cos_test.dual == pytest.approx(expected_dual, rel=1e-6)
+
+def test_tan_array():
+    test_number = Dual(np.array([0.0, np.pi / 4]), np.array([1.0, 1.0]))
+    tan_test = test_number.tan()
+    expected_real = np.tan(np.array([0.0, np.pi / 4]))
+    expected_dual = (1 / np.cos(np.array([0.0, np.pi / 4]))) ** 2
+    assert tan_test.real == pytest.approx(expected_real, rel=1e-6)
+    assert tan_test.dual == pytest.approx(expected_dual, rel=1e-6)
+
+def test_log_array():
+    test_number = Dual(np.array([2.0, 3.0]), np.array([1.0, 1.0]))
+    log_test = test_number.log()
+    expected_real = np.log(np.array([2.0, 3.0]))
+    expected_dual = 1 / np.array([2.0, 3.0])
+    assert log_test.real == pytest.approx(expected_real, rel=1e-6)
+    assert log_test.dual == pytest.approx(expected_dual, rel=1e-6)
+
+def test_exp_array():
+    test_number = Dual(np.array([2.0, 3.0]), np.array([1.0, 1.0]))
+    exp_test = test_number.exp()
+    expected_real = np.exp(np.array([2.0, 3.0]))
+    expected_dual = np.exp(np.array([2.0, 3.0]))
+    assert exp_test.real == pytest.approx(expected_real, rel=1e-6)
+    assert exp_test.dual == pytest.approx(expected_dual, rel=1e-6)
+
+def test_shape_mismatch_exception():
+    real = np.array([1.0, 2.0, 3.0])
+    dual = np.array([4.0, 5.0])  # Mismatched shape
+    with pytest.raises(ValueError, match="Shape mismatch"):
+        Dual(real, dual)
