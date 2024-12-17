@@ -22,7 +22,11 @@ autoclass_content = 'both'
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.napoleon',
               'sphinx.ext.mathjax',
-              'nbsphinx']
+              'nbsphinx',
+              'sphinx.ext.autosummary',
+              'sphinx.ext.intersphinx',
+              'sphinx.ext.viewcode',
+              'sphinxcontrib.spelling']
 
 mathjax3_config = {
     'tex2jax': {
@@ -32,9 +36,21 @@ mathjax3_config = {
 }
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'dual_autodiff/version.py']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'dual_autodiff/version.py', '**/version.py']
+autodoc_mock_imports = ['dual_autodiff.version']
 
+# Spelling settings
+spelling_lang = 'en_US'  # Language for spell-checking (e.g., 'en_GB' for British English)
+spelling_word_list_filename = 'spelling_wordlist.txt'  # Custom word list
 
+autosummary_generate = True
+add_module_names = False  # Remove module paths like dual_autodiff.dual
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'special-members': '__add__,__sub__,__mul__,__pow__',
+    'show-inheritance': True
+}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

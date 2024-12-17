@@ -113,6 +113,9 @@ class Dual:
     def sin(self):
         """Compute the sine of the Dual number.
 
+        Inputs:
+            scalar, array-like
+
         Returns:
             Dual: A new Dual number representing the sine.
         """
@@ -124,6 +127,9 @@ class Dual:
     def cos(self):
         """Compute the cosine of the Dual number.
 
+        Inputs:
+            scalar, array-like
+
         Returns:
             Dual: A new Dual number representing the cosine.
         """
@@ -134,6 +140,9 @@ class Dual:
 
     def tan(self):
         """Compute the tangent of the Dual number.
+
+        Inputs:
+            scalar, array-like
 
         Returns:
             Dual: A new Dual number representing the tangent.
@@ -169,6 +178,9 @@ class Dual:
 
     def log(self):
         """Compute the natural logarithm of the Dual number.
+
+        Inputs:
+            scalar, array-like
 
         Returns:
             Dual: A new Dual number representing the natural logarithm.
@@ -207,6 +219,9 @@ class Dual:
     def exp(self):
         """Compute the exponential of the Dual number.
 
+        Inputs:
+            scalar, array-like
+            
         Returns:
             Dual: A new Dual number representing the exponential.
         """
