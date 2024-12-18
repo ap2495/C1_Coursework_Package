@@ -15,11 +15,13 @@ Welcome to the documentation for the Dual Autodifferentiation Package! This pack
 Installation
 ------------
 
-To install the package, use the following command:
+To install the package in python3.12.3, download the wheel and use the following command:
 
 .. code-block:: bash
 
-   pip install dual_autodiff
+   pip install ./dual-0.1.dev9+gcecdca2.d20241217-py3-none-any.whl
+
+Note: Separate installations of `numpy` and `pytest` are required.
 
 In this section we provide detailed documentation for the modules and classes in the `dual_autodiff` package.
 
